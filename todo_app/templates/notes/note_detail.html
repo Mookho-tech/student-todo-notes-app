@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ note.title }} - TaskFlow{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h2 class="mb-0">{{ note.title }}</h2>
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ note.content|linebreaks }}</p>
+                <p class="card-text"><strong>Created:</strong> {{ note.created_at|date:"M d, Y, g:i A" }}</p>
+                <p class="card-text"><strong>Last Updated:</strong> {{ note.updated_at|date:"M d, Y, g:i A" }}</p>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'note_list' %}" class="btn btn-secondary">Back to Notes</a>
+                    <div>
+                        <a href="{% url 'note_update' note.id %}" class="btn btn-info">Edit</a>
+                        <a href="{% url 'note_delete' note.id %}" class="btn btn-danger">Delete</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

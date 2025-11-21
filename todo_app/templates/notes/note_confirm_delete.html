@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Note - TaskFlow{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-danger text-white">
+                <h2 class="mb-0">Confirm Deletion</h2>
+            </div>
+            <div class="card-body">
+                <p>Are you sure you want to delete the note "{{ note.title }}"?</p>
+                <p>This action cannot be undone.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'note_detail' note.id %}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
