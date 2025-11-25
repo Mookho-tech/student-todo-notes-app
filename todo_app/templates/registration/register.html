@@ -1,56 +1,473 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Register - TaskFlow{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white text-center">
-                <h2 class="mb-0">Create Your Account</h2>
-            </div>
-            <div class="card-body">
-                <form method="post">
+<div class="row justify-content-center align-items-center min-vh-100">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <img src="{% static 'images/logo.svg' %}" alt="TaskFlow Logo" width="80" height="80" class="mb-3">
+                    <h2 class="fw-bold">Create Your Account</h2>
+                    <p class="text-muted">Join TaskFlow and start organizing your tasks</p>
+                </div>
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <form method="post" id="registerForm">
                     {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                <i class="bi bi-person me-1"></i> First Name
+                            </label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.first_name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                <i class="bi bi-person me-1"></i> Last Name
+                            </label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.last_name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
                     <div class="mb-3">
-                        <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
-                        {{ form.username.errors }}
+                        <label for="{{ form.username.id_for_label }}" class="form-label">
+                            <i class="bi bi-person-badge me-1"></i> Username
+                        </label>
                         {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.username.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">This will be your unique identifier on TaskFlow</div>
                     </div>
+                    
                     <div class="mb-3">
-                        <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
-                        {{ form.first_name.errors }}
-                        {{ form.first_name }}
-                    </div>
-                    <div class="mb-3">
-                        <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
-                        {{ form.last_name.errors }}
-                        {{ form.last_name }}
-                    </div>
-                    <div class="mb-3">
-                        <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
-                        {{ form.email.errors }}
+                        <label for="{{ form.email.id_for_label }}" class="form-label">
+                            <i class="bi bi-envelope me-1"></i> Email
+                        </label>
                         {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.email.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">We'll never share your email with anyone else</div>
                     </div>
+                    
                     <div class="mb-3">
-                        <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
-                        {{ form.password1.errors }}
-                        {{ form.password1 }}
+                        <label for="{{ form.password1.id_for_label }}" class="form-label">
+                            <i class="bi bi-lock me-1"></i> Password
+                        </label>
+                        <div class="input-group">
+                            {{ form.password1 }}
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword1">
+                                <i class="bi bi-eye" id="password1Icon"></i>
+                            </button>
+                        </div>
+                        {% if form.password1.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.password1.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="mt-2">
+                            <div class="progress" style="height: 5px;">
+                                <div class="progress-bar" id="passwordStrength" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small class="form-text" id="passwordStrengthText">Enter a password</small>
+                        </div>
                     </div>
+                    
                     <div class="mb-3">
-                        <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
-                        {{ form.password2.errors }}
-                        {{ form.password2 }}
+                        <label for="{{ form.password2.id_for_label }}" class="form-label">
+                            <i class="bi bi-lock-fill me-1"></i> Confirm Password
+                        </label>
+                        <div class="input-group">
+                            {{ form.password2 }}
+                            <button class="btn btn-outline-secondary" type="button" id="togglePassword2">
+                                <i class="bi bi-eye" id="password2Icon"></i>
+                            </button>
+                        </div>
+                        {% if form.password2.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.password2.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Register</button>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="agreeTerms" name="agree_terms" required>
+                        <label class="form-check-label" for="agreeTerms">
+                            I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms of Service</a> and <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</a>
+                        </label>
+                    </div>
+                    
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-person-plus me-1"></i> Create Account
+                        </button>
                     </div>
                 </form>
-                <div class="text-center mt-3">
-                    <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+                
+                <div class="position-relative my-4">
+                    <hr>
+                    <div class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted">OR</div>
+                </div>
+                
+                <div class="d-grid gap-2 mb-4">
+                    <button class="btn btn-outline-primary" type="button">
+                        <i class="bi bi-google me-2"></i> Sign up with Google
+                    </button>
+                    <button class="btn btn-outline-primary" type="button">
+                        <i class="bi bi-microsoft me-2"></i> Sign up with Microsoft
+                    </button>
+                </div>
+                
+                <div class="text-center">
+                    <p class="mb-0">Already have an account? <a href="{% url 'login' %}" class="text-decoration-none fw-bold">Sign in</a></p>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Terms Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Terms of Service</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Acceptance of Terms</h6>
+                <p>By creating an account with TaskFlow, you agree to be bound by these Terms of Service.</p>
+                
+                <h6>2. Use of Service</h6>
+                <p>You agree to use TaskFlow for lawful purposes only and in accordance with these Terms.</p>
+                
+                <h6>3. Privacy</h6>
+                <p>Your privacy is important to us. Please review our Privacy Policy, which also governs your use of the Service.</p>
+                
+                <h6>4. Account Security</h6>
+                <p>You are responsible for maintaining the confidentiality of your account and password.</p>
+                
+                <h6>5. Termination</h6>
+                <p>We may terminate or suspend your account immediately, without prior notice or liability, for any reason whatsoever.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Privacy Modal -->
+<div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="privacyModalLabel">Privacy Policy</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Information We Collect</h6>
+                <p>TaskFlow collects information you provide directly to us, such as when you create an account, update your profile, or use our services.</p>
+                
+                <h6>How We Use Your Information</h6>
+                <p>We use the information we collect to provide, maintain, and improve our services, process transactions, and communicate with you.</p>
+                
+                <h6>Information Sharing</h6>
+                <p>We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, except as described in this Privacy Policy.</p>
+                
+                <h6>Data Security</h6>
+                <p>We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add form-control class to form fields
+        const formFields = [
+            document.getElementById('{{ form.first_name.id_for_label }}'),
+            document.getElementById('{{ form.last_name.id_for_label }}'),
+            document.getElementById('{{ form.username.id_for_label }}'),
+            document.getElementById('{{ form.email.id_for_label }}'),
+            document.getElementById('{{ form.password1.id_for_label }}'),
+            document.getElementById('{{ form.password2.id_for_label }}')
+        ];
+        
+        formFields.forEach(field => {
+            if (field) {
+                field.classList.add('form-control');
+            }
+        });
+        
+        // Toggle password visibility
+        const togglePassword1 = document.getElementById('togglePassword1');
+        const password1Icon = document.getElementById('password1Icon');
+        const password1Field = document.getElementById('{{ form.password1.id_for_label }}');
+        
+        togglePassword1.addEventListener('click', function() {
+            const type = password1Field.getAttribute('type') === 'password' ? 'text' : 'password';
+            password1Field.setAttribute('type', type);
+            
+            // Toggle icon
+            if (type === 'password') {
+                password1Icon.classList.remove('bi-eye-slash');
+                password1Icon.classList.add('bi-eye');
+            } else {
+                password1Icon.classList.remove('bi-eye');
+                password1Icon.classList.add('bi-eye-slash');
+            }
+        });
+        
+        const togglePassword2 = document.getElementById('togglePassword2');
+        const password2Icon = document.getElementById('password2Icon');
+        const password2Field = document.getElementById('{{ form.password2.id_for_label }}');
+        
+        togglePassword2.addEventListener('click', function() {
+            const type = password2Field.getAttribute('type') === 'password' ? 'text' : 'password';
+            password2Field.setAttribute('type', type);
+            
+            // Toggle icon
+            if (type === 'password') {
+                password2Icon.classList.remove('bi-eye-slash');
+                password2Icon.classList.add('bi-eye');
+            } else {
+                password2Icon.classList.remove('bi-eye');
+                password2Icon.classList.add('bi-eye-slash');
+            }
+        });
+        
+        // Password strength checker
+        const passwordStrength = document.getElementById('passwordStrength');
+        const passwordStrengthText = document.getElementById('passwordStrengthText');
+        
+        password1Field.addEventListener('input', function() {
+            const password = this.value;
+            let strength = 0;
+            let strengthText = '';
+            
+            // Check password strength
+            if (password.length >= 8) strength += 25;
+            if (password.match(/[a-z]+/)) strength += 25;
+            if (password.match(/[A-Z]+/)) strength += 25;
+            if (password.match(/[0-9]+/)) strength += 25;
+            
+            // Update progress bar
+            passwordStrength.style.width = strength + '%';
+            
+            // Update text and color based on strength
+            if (password.length === 0) {
+                strengthText = 'Enter a password';
+                passwordStrength.className = 'progress-bar';
+            } else if (strength <= 25) {
+                strengthText = 'Weak password';
+                passwordStrength.className = 'progress-bar bg-danger';
+            } else if (strength <= 50) {
+                strengthText = 'Fair password';
+                passwordStrength.className = 'progress-bar bg-warning';
+            } else if (strength <= 75) {
+                strengthText = 'Good password';
+                passwordStrength.className = 'progress-bar bg-info';
+            } else {
+                strengthText = 'Strong password';
+                passwordStrength.className = 'progress-bar bg-success';
+            }
+            
+            passwordStrengthText.textContent = strengthText;
+        });
+        
+        // Form validation
+        const registerForm = document.getElementById('registerForm');
+        registerForm.addEventListener('submit', function(event) {
+            let isValid = true;
+            
+            // Validate first name
+            const firstNameField = document.getElementById('{{ form.first_name.id_for_label }}');
+            if (!firstNameField.value.trim()) {
+                isValid = false;
+                firstNameField.classList.add('is-invalid');
+                showFieldError(firstNameField, 'Please enter your first name');
+            }
+            
+            // Validate last name
+            const lastNameField = document.getElementById('{{ form.last_name.id_for_label }}');
+            if (!lastNameField.value.trim()) {
+                isValid = false;
+                lastNameField.classList.add('is-invalid');
+                showFieldError(lastNameField, 'Please enter your last name');
+            }
+            
+            // Validate username
+            if (!usernameField.value.trim()) {
+                isValid = false;
+                usernameField.classList.add('is-invalid');
+                showFieldError(usernameField, 'Please enter a username');
+            }
+            
+            // Validate email
+            const emailField = document.getElementById('{{ form.email.id_for_label }}');
+            if (!emailField.value.trim()) {
+                isValid = false;
+                emailField.classList.add('is-invalid');
+                showFieldError(emailField, 'Please enter your email address');
+            }
+            
+            // Validate password
+            if (!password1Field.value.trim()) {
+                isValid = false;
+                password1Field.classList.add('is-invalid');
+                showFieldError(password1Field, 'Please enter a password');
+            }
+            
+            // Validate password confirmation
+            if (!password2Field.value.trim()) {
+                isValid = false;
+                password2Field.classList.add('is-invalid');
+                showFieldError(password2Field, 'Please confirm your password');
+            } else if (password1Field.value !== password2Field.value) {
+                isValid = false;
+                password2Field.classList.add('is-invalid');
+                showFieldError(password2Field, 'Passwords do not match');
+            }
+            
+            // Validate terms agreement
+            const agreeTerms = document.getElementById('agreeTerms');
+            if (!agreeTerms.checked) {
+                isValid = false;
+                agreeTerms.classList.add('is-invalid');
+                showFieldError(agreeTerms, 'You must agree to the terms and conditions');
+            }
+            
+            if (!isValid) {
+                event.preventDefault();
+            }
+        });
+        
+        // Clear validation on input
+        formFields.forEach(field => {
+            if (field) {
+                field.addEventListener('input', function() {
+                    this.classList.remove('is-invalid');
+                    hideFieldError(this);
+                });
+            }
+        });
+        
+        document.getElementById('agreeTerms').addEventListener('change', function() {
+            this.classList.remove('is-invalid');
+            hideFieldError(this);
+        });
+    });
+    
+    function showFieldError(field, message) {
+        // Remove existing error if any
+        hideFieldError(field);
+        
+        // Create and add error message
+        const errorDiv = document.createElement('div');
+        errorDiv.classList.add('invalid-feedback', 'd-block');
+        errorDiv.textContent = message;
+        errorDiv.id = field.id + '-error';
+        
+        // For checkboxes, add error after the parent div
+        if (field.type === 'checkbox') {
+            field.parentNode.parentNode.appendChild(errorDiv);
+        } else {
+            field.parentNode.appendChild(errorDiv);
+        }
+    }
+    
+    function hideFieldError(field) {
+        const errorElement = document.getElementById(field.id + '-error');
+        if (errorElement) {
+            errorElement.remove();
+        }
+    }
+</script>
+
+<style>
+    .min-vh-100 {
+        min-height: calc(100vh - 200px);
+    }
+    
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    .btn {
+        border-radius: 8px;
+        padding: 10px 16px;
+        font-weight: 500;
+    }
+    
+    .form-control {
+        border-radius: 8px;
+        padding: 12px 16px;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(74, 111, 255, 0.25);
+    }
+    
+    .input-group .btn {
+        border-left: none;
+    }
+    
+    .invalid-feedback {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    .form-check-input.is-invalid ~ .form-check-label {
+        color: #dc3545;
+    }
+    
+    .form-check-input.is-invalid ~ .invalid-feedback {
+        display: block;
+    }
+</style>
 {% endblock %}

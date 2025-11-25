@@ -1,101 +1,205 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Dashboard - TaskFlow{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h1 class="mb-4 animate-fade-in">Welcome back, {{ user.first_name }}!</h1>
-    </div>
-</div>
-
-<div class="row mb-4">
-    <div class="col-md-6 mb-4">
-        <div class="card h-100 shadow-sm hover-card">
-            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-check2-square me-2"></i>Recent Tasks</h5>
-                <a href="{% url 'task_create' %}" class="btn btn-sm btn-light">
-                    <i class="bi bi-plus-circle me-1"></i> Add Task
-                </a>
-            </div>
-            <div class="card-body">
-                {% if tasks %}
-                    <ul class="list-group list-group-flush">
-                        {% for task in tasks %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center {% if task.is_completed %}completed-task{% endif %}">
-                                <div>
-                                    <h6 class="mb-1">{{ task.title }}</h6>
-                                    {% if task.due_date %}
-                                        <small class="text-muted">Due: {{ task.due_date }}</small>
-                                    {% endif %}
-                                </div>
-                                <div>
-                                    {% if task.is_completed %}
-                                        <span class="badge bg-success">Completed</span>
-                                    {% else %}
-                                        <span class="badge bg-warning">Pending</span>
-                                    {% endif %}
-                                </div>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                    <div class="mt-3 text-center">
-                        <a href="{% url 'task_list' %}" class="btn btn-outline-primary">View All Tasks</a>
-                    </div>
-                {% else %}
-                    <p class="text-center my-4">No tasks yet. <a href="{% url 'task_create' %}">Create your first task</a>.</p>
-                {% endif %}
+<div class="container mt-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h1 class="h3 mb-2">Welcome back, {{ user.first_name|default:user.username }}! 👋</h1>
+                    <p class="text-muted">Ready to tackle your studies today?</p>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-6 mb-4">
-        <div class="card h-100 shadow-sm hover-card">
-            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-journal-text me-2"></i>Recent Notes</h5>
-                <a href="{% url 'note_create' %}" class="btn btn-sm btn-light">
-                    <i class="bi bi-plus-circle me-1"></i> Add Note
-                </a>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card dashboard-stat text-primary">
+                <div class="card-body text-center">
+                    <i class="bi bi-journal-check display-4"></i>
+                    <h3>{{ tasks.count }}</h3>
+                    <p class="mb-0">Assignments</p>
+                </div>
             </div>
-            <div class="card-body">
-                {% if notes %}
-                    <ul class="list-group list-group-flush">
-                        {% for note in notes %}
-                            <li class="list-group-item">
-                                <h6 class="mb-1">{{ note.title }}</h6>
-                                <p class="mb-1 text-truncate">{{ note.content }}</p>
-                                <small class="text-muted">Created: {{ note.created_at|date:"M d, Y" }}</small>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                    <div class="mt-3 text-center">
-                        <a href="{% url 'note_list' %}" class="btn btn-outline-info">View All Notes</a>
-                    </div>
-                {% else %}
-                    <p class="text-center my-4">No notes yet. <a href="{% url 'note_create' %}">Create your first note</a>.</p>
-                {% endif %}
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card dashboard-stat text-success">
+                <div class="card-body text-center">
+                    <i class="bi bi-journal-text display-4"></i>
+                    <h3>{{ notes.count }}</h3>
+                    <p class="mb-0">Study Notes</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card dashboard-stat text-info">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle display-4"></i>
+                    <h3>0</h3>
+                    <p class="mb-0">Completed</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card dashboard-stat text-warning">
+                <div class="card-body text-center">
+                    <i class="bi bi-clock display-4"></i>
+                    <h3>{{ tasks.count }}</h3>
+                    <p class="mb-0">Pending</p>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="col-12">
-        <div class="card shadow-sm">
-            <div class="card-body text-center">
-                <h5 class="card-title">Quick Actions</h5>
-                <div class="d-flex justify-content-center flex-wrap">
-                    <a href="{% url 'task_create' %}" class="btn btn-primary m-2">
-                        <i class="bi bi-plus-circle me-1"></i> New Task
+    <!-- Recent Tasks and Notes -->
+    <div class="row">
+        <!-- Recent Tasks -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-journal-check me-2"></i>Recent Tasks
+                    </h5>
+                    <a href="{% url 'task_create' %}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-circle"></i> Add
                     </a>
-                    <a href="{% url 'note_create' %}" class="btn btn-info m-2">
-                        <i class="bi bi-journal-plus me-1"></i> New Note
+                </div>
+                <div class="card-body">
+                    {% if tasks %}
+                        <div class="list-group list-group-flush">
+                            {% for task in tasks %}
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">{{ task.title }}</h6>
+                                            <p class="mb-1 text-muted small">{{ task.description|truncatewords:10 }}</p>
+                                            {% if task.priority %}
+                                                <span class="badge {% if task.priority == 'high' %}bg-danger{% elif task.priority == 'medium' %}bg-warning{% else %}bg-success{% endif %}">
+                                                    {{ task.get_priority_display }}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-end">
+                                            <small class="text-muted">{{ task.created_at|date:"M d" }}</small>
+                                            <div class="mt-2">
+                                                <a href="{% url 'task_detail' task.pk %}" class="btn btn-sm btn-outline-secondary">View</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-clipboard-check display-1 text-muted"></i>
+                            <h4 class="mt-3">No tasks yet</h4>
+                            <p>Create your first task to get started!</p>
+                            <a href="{% url 'task_create' %}" class="btn btn-primary mt-2">
+                                <i class="bi bi-plus-circle"></i> Create Task
+                            </a>
+                        </div>
+                    {% endif %}
+                    {% if tasks %}
+                        <div class="text-center mt-3">
+                            <a href="{% url 'task_list' %}" class="btn btn-outline-primary">View All Tasks</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Notes -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-journal-text me-2"></i>Recent Notes
+                    </h5>
+                    <a href="{% url 'note_create' %}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-circle"></i> Add
                     </a>
-                    <a href="{% url 'task_list' %}" class="btn btn-outline-primary m-2">
-                        <i class="bi bi-list-task me-1"></i> All Tasks
-                    </a>
-                    <a href="{% url 'note_list' %}" class="btn btn-outline-info m-2">
-                        <i class="bi bi-journal-text me-1"></i> All Notes
-                    </a>
+                </div>
+                <div class="card-body">
+                    {% if notes %}
+                        <div class="list-group list-group-flush">
+                            {% for note in notes %}
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">{{ note.title }}</h6>
+                                            <p class="mb-1 text-muted small">{{ note.content|truncatewords:15 }}</p>
+                                        </div>
+                                        <div class="text-end">
+                                            <small class="text-muted">{{ note.created_at|date:"M d" }}</small>
+                                            <div class="mt-2">
+                                                <a href="{% url 'note_detail' note.pk %}" class="btn btn-sm btn-outline-secondary">View</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-journal-x display-1 text-muted"></i>
+                            <h4 class="mt-3">No notes yet</h4>
+                            <p>Create your first note to get started!</p>
+                            <a href="{% url 'note_create' %}" class="btn btn-primary mt-2">
+                                <i class="bi bi-plus-circle"></i> Create Note
+                            </a>
+                        </div>
+                    {% endif %}
+                    {% if notes %}
+                        <div class="text-center mt-3">
+                            <a href="{% url 'note_list' %}" class="btn btn-outline-primary">View All Notes</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-lightning me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 col-6 mb-3">
+                            <a href="{% url 'task_create' %}" class="btn btn-primary quick-action-btn w-100">
+                                <i class="bi bi-plus-circle me-2"></i>New Task
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <a href="{% url 'note_create' %}" class="btn btn-success quick-action-btn w-100">
+                                <i class="bi bi-journal-plus me-2"></i>New Note
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <a href="{% url 'task_list' %}" class="btn btn-warning quick-action-btn w-100">
+                                <i class="bi bi-list-task me-2"></i>All Tasks
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <a href="{% url 'note_list' %}" class="btn btn-info quick-action-btn w-100">
+                                <i class="bi bi-journal-text me-2"></i>All Notes
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

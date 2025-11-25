@@ -1,44 +1,481 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}{{ title }} - TaskFlow{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <h2 class="mb-0">{{ title }}</h2>
+<div class="container-fluid py-4">
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'task_list' %}">Tasks</a></li>
+            <li class="breadcrumb-item active">{{ title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm animate-fade-in">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0">{{ title }}</h2>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="autoSaveToggle" checked>
+                        <label class="form-check-label" for="autoSaveToggle">Auto-save</label>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="taskForm">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="{{ form.title.id_for_label }}" class="form-label">
+                                    <i class="bi bi-type me-1"></i> Title
+                                </label>
+                                {{ form.title.errors }}
+                                {{ form.title }}
+                                <div class="form-text">A descriptive title for your task</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.priority.id_for_label }}" class="form-label">
+                                    <i class="bi bi-flag me-1"></i> Priority
+                                </label>
+                                {{ form.priority.errors }}
+                                {{ form.priority }}
+                                <div class="form-text">Set task priority level</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                <i class="bi bi-text-paragraph me-1"></i> Description
+                            </label>
+                            {{ form.description.errors }}
+                            {{ form.description }}
+                            <div class="form-text">Provide details about this task</div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.due_date.id_for_label }}" class="form-label">
+                                    <i class="bi bi-calendar-event me-1"></i> Due Date
+                                </label>
+                                {{ form.due_date.errors }}
+                                {{ form.due_date }}
+                                <div class="form-text">When should this task be completed?</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.category.id_for_label }}" class="form-label">
+                                    <i class="bi bi-folder me-1"></i> Category
+                                </label>
+                                {{ form.category.errors }}
+                                {{ form.category }}
+                                <div class="form-text">Organize tasks by category</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tags Section -->
+                        <div class="mb-3">
+                            <label for="taskTags" class="form-label">
+                                <i class="bi bi-tags me-1"></i> Tags
+                            </label>
+                            <input type="text" class="form-control" id="taskTags" placeholder="Add tags separated by commas">
+                            <div class="form-text">Add tags to organize your tasks</div>
+                            <div id="tagsList" class="mt-2"></div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            {{ form.is_completed.errors }}
+                            {{ form.is_completed }}
+                            <label for="{{ form.is_completed.id_for_label }}" class="form-check-label">Mark as completed</label>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="reminder" class="form-label">
+                                <i class="bi bi-bell me-1"></i> Reminder
+                            </label>
+                            <select class="form-select" id="reminder" name="reminder">
+                                <option value="none">No reminder</option>
+                                <option value="15">15 minutes before</option>
+                                <option value="30">30 minutes before</option>
+                                <option value="60">1 hour before</option>
+                                <option value="1440">1 day before</option>
+                            </select>
+                            <div class="form-text">Get notified before the due date</div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'task_list' %}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle me-1"></i> Cancel
+                            </a>
+                            <div>
+                                <button type="button" class="btn btn-outline-secondary me-2" onclick="saveDraft()">
+                                    <i class="bi bi-save me-1"></i> Save Draft
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle me-1"></i> Save Task
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="{{ form.title.id_for_label }}" class="form-label">Title</label>
-                        {{ form.title.errors }}
-                        {{ form.title }}
+            
+            <!-- Task Tips -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightbulb me-1"></i> Task Tips
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Effective Task Management</h6>
+                            <ul class="small">
+                                <li>Be specific with task titles</li>
+                                <li>Break large tasks into smaller ones</li>
+                                <li>Set realistic due dates</li>
+                                <li>Prioritize important tasks</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Productivity Best Practices</h6>
+                            <ul class="small">
+                                <li>Focus on one task at a time</li>
+                                <li>Take regular breaks</li>
+                                <li>Set reminders for important deadlines</li>
+                                <li>Review and update tasks regularly</li>
+                            </ul>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
-                        {{ form.description.errors }}
-                        {{ form.description }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Recent Tasks -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock-history me-1"></i> Recent Tasks
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_tasks %}
+                        <div class="list-group list-group-flush">
+                            {% for recent_task in recent_tasks %}
+                                <a href="{% url 'task_detail' recent_task.id %}" class="list-group-item list-group-item-action">
+                                    <h6 class="mb-1">{{ recent_task.title|truncatechars:30 }}</h6>
+                                    <small class="text-muted">{{ recent_task.updated_at|date:"M d, Y" }}</small>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">No recent tasks</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Task Templates -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-earmark-text me-1"></i> Task Templates
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <a href="#" class="list-group-item list-group-item-action" onclick="loadTemplate('meeting')">
+                            <h6 class="mb-1">Meeting Preparation</h6>
+                            <small class="text-muted">Prepare for upcoming meetings</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" onclick="loadTemplate('report')">
+                            <h6 class="mb-1">Report Writing</h6>
+                            <small class="text-muted">Structure for writing reports</small>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" onclick="loadTemplate('study')">
+                            <h6 class="mb-1">Study Session</h6>
+                            <small class="text-muted">Organize study materials</small>
+                        </a>
                     </div>
-                    <div class="mb-3">
-                        <label for="{{ form.due_date.id_for_label }}" class="form-label">Due Date</label>
-                        {{ form.due_date.errors }}
-                        {{ form.due_date }}
+                </div>
+            </div>
+            
+            <!-- Shortcuts -->
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-keyboard me-1"></i> Shortcuts
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Save</span>
+                            <kbd>Ctrl + S</kbd>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Priority High</span>
+                            <kbd>Ctrl + 1</kbd>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Priority Medium</span>
+                            <kbd>Ctrl + 2</kbd>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Priority Low</span>
+                            <kbd>Ctrl + 3</kbd>
+                        </div>
                     </div>
-                    <div class="mb-3 form-check">
-                        {{ form.is_completed.errors }}
-                        {{ form.is_completed }}
-                        <label for="{{ form.is_completed.id_for_label }}" class="form-check-label">Mark as completed</label>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <a href="{% url 'task_list' %}" class="btn btn-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-primary">Save Task</button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const titleField = document.getElementById('{{ form.title.id_for_label }}');
+        const descriptionField = document.getElementById('{{ form.description.id_for_label }}');
+        const saveStatus = document.createElement('div');
+        saveStatus.className = 'text-success small mt-2';
+        saveStatus.id = 'saveStatus';
+        
+        const autoSaveToggle = document.getElementById('autoSaveToggle');
+        const tagsField = document.getElementById('taskTags');
+        const tagsList = document.getElementById('tagsList');
+        
+        // Add form-control class to form fields
+        document.querySelectorAll('input, select, textarea').forEach(field => {
+            if (field.type !== 'checkbox' && field.type !== 'radio') {
+                field.classList.add('form-control');
+            }
+        });
+        
+        // Tags functionality
+        let tags = [];
+        
+        function addTag(tag) {
+            if (tag && !tags.includes(tag)) {
+                tags.push(tag);
+                renderTags();
+            }
+        }
+        
+        function removeTag(tag) {
+            tags = tags.filter(t => t !== tag);
+            renderTags();
+        }
+        
+        function renderTags() {
+            tagsList.innerHTML = '';
+            tags.forEach(tag => {
+                const tagElement = document.createElement('span');
+                tagElement.className = 'badge bg-secondary me-1 mb-1';
+                tagElement.innerHTML = `${tag} <i class="bi bi-x" onclick="removeTag('${tag}')"></i>`;
+                tagsList.appendChild(tagElement);
+            });
+        }
+        
+        tagsField.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                const tag = this.value.trim();
+                if (tag) {
+                    addTag(tag);
+                    this.value = '';
+                }
+            }
+        });
+        
+        // Auto-save function
+        let autoSaveTimeout;
+        function autoSave() {
+            clearTimeout(autoSaveTimeout);
+            saveStatus.textContent = 'Saving...';
+            
+            autoSaveTimeout = setTimeout(function() {
+                // In a real app, this would send an AJAX request to save the draft
+                saveStatus.textContent = 'Saved';
+                setTimeout(function() {
+                    saveStatus.textContent = '';
+                }, 2000);
+            }, 1000);
+        }
+        
+        // Add save status to form
+        document.querySelector('.card-body').appendChild(saveStatus);
+        
+        // Auto-save on input if enabled
+        titleField.addEventListener('input', function() {
+            if (autoSaveToggle.checked) {
+                autoSave();
+            }
+        });
+        
+        descriptionField.addEventListener('input', function() {
+            if (autoSaveToggle.checked) {
+                autoSave();
+            }
+        });
+        
+        // Save draft function
+        function saveDraft() {
+            saveStatus.textContent = 'Saving draft...';
+            
+            // In a real app, this would send an AJAX request to save the draft
+            setTimeout(function() {
+                saveStatus.textContent = 'Draft saved';
+                setTimeout(function() {
+                    saveStatus.textContent = '';
+                }, 2000);
+            }, 1000);
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+S to save
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                document.getElementById('taskForm').submit();
+            }
+            
+            // Priority shortcuts
+            if (e.ctrlKey) {
+                const priorityField = document.getElementById('{{ form.priority.id_for_label }}');
+                switch(e.key) {
+                    case '1':
+                        e.preventDefault();
+                        priorityField.value = 'high';
+                        break;
+                    case '2':
+                        e.preventDefault();
+                        priorityField.value = 'medium';
+                        break;
+                    case '3':
+                        e.preventDefault();
+                        priorityField.value = 'low';
+                        break;
+                }
+            }
+        });
+        
+        // Load draft if exists
+        const draft = localStorage.getItem('taskDraft');
+        if (draft) {
+            const draftData = JSON.parse(draft);
+            const draftDate = new Date(draftData.timestamp);
+            const now = new Date();
+            const diffHours = (now - draftDate) / (1000 * 60 * 60);
+            
+            // Only show draft if it's less than 24 hours old
+            if (diffHours < 24) {
+                // Only populate if fields are empty
+                if (!titleField.value && !descriptionField.value) {
+                    titleField.value = draftData.title || '';
+                    descriptionField.value = draftData.description || '';
+                    
+                    if (draftData.tags) {
+                        tags = draftData.tags;
+                        renderTags();
+                    }
+                    
+                    showToast('Draft restored from ' + draftDate.toLocaleString(), 'info');
+                }
+            }
+        }
+        
+        // Save draft before form submission
+        document.getElementById('taskForm').addEventListener('submit', function() {
+            localStorage.setItem('taskDraft', JSON.stringify({
+                title: titleField.value,
+                description: descriptionField.value,
+                tags: tags,
+                timestamp: new Date().toISOString()
+            }));
+        });
+    });
+    
+    function loadTemplate(type) {
+        const titleField = document.getElementById('{{ form.title.id_for_label }}');
+        const descriptionField = document.getElementById('{{ form.description.id_for_label }}');
+        
+        switch(type) {
+            case 'meeting':
+                titleField.value = 'Meeting Preparation';
+                descriptionField.value = '1. Review agenda\n2. Prepare talking points\n3. Gather necessary materials\n4. Follow up on action items';
+                break;
+            case 'report':
+                titleField.value = 'Report Writing';
+                descriptionField.value = '1. Research and gather data\n2. Create outline\n3. Write first draft\n4. Review and edit\n5. Finalize and submit';
+                break;
+            case 'study':
+                titleField.value = 'Study Session';
+                descriptionField.value = '1. Review previous material\n2. Read new content\n3. Take notes\n4. Practice problems\n5. Summarize key points';
+                break;
+        }
+        
+        showToast('Template loaded successfully', 'success');
+    }
+    
+    function showToast(message, type) {
+        // Create a toast notification
+        const toastContainer = document.querySelector('.toast-container') || createToastContainer();
+        
+        const toastId = 'toast-' + Date.now();
+        const toastHtml = `
+            <div id="${toastId}" class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        
+        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+        
+        const toastElement = document.getElementById(toastId);
+        const toast = new bootstrap.Toast(toastElement, {
+            autohide: true,
+            delay: 3000
+        });
+        
+        toast.show();
+        
+        // Remove toast element after it's hidden
+        toastElement.addEventListener('hidden.bs.toast', function() {
+            toastElement.remove();
+        });
+    }
+    
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        document.body.appendChild(container);
+        return container;
+    }
+</script>
+
+<style>
+    .list-group-item {
+        padding: 0.5rem 1rem;
+    }
+    
+    kbd {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.875em;
+        color: var(--dark-color);
+        background-color: var(--light-color);
+        border-radius: 0.25rem;
+        box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+    }
+    
+    .badge i {
+        cursor: pointer;
+        margin-left: 5px;
+    }
+</style>
 {% endblock %}

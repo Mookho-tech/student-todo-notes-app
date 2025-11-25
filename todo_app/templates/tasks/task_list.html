@@ -1,76 +1,264 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Tasks - TaskFlow{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-8">
-        <h1 class="animate-fade-in">My Tasks</h1>
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h1 class="mb-0 animate-fade-in">
+                <i class="bi bi-check2-square text-primary me-2"></i> My Tasks
+            </h1>
+            <p class="text-muted mb-0">Manage and track your to-do items</p>
+        </div>
+        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+            <a href="{% url 'task_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> Add New Task
+            </a>
+        </div>
     </div>
-    <div class="col-md-4 text-end">
-        <a href="{% url 'task_create' %}" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-1"></i> Add New Task
-        </a>
-    </div>
-</div>
 
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <form method="get" class="d-flex">
-                    <input class="form-control me-2" type="search" name="search" placeholder="Search tasks..." value="{{ search_query }}">
-                    <button class="btn btn-outline-primary" type="submit">Search</button>
-                </form>
+    <!-- Search and Filter Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <form method="get" class="d-flex">
+                                <input class="form-control me-2" type="search" name="search" placeholder="Search tasks..." value="{{ search_query }}">
+                                <button class="btn btn-outline-primary" type="submit">
+                                    <i class="bi bi-search"></i> Search
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="filterDropdown" data-bs-toggle="dropdown">
+                                    <i class="bi bi-funnel me-1"></i> Filter
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="?status=all">All Tasks</a></li>
+                                    <li><a class="dropdown-item" href="?status=pending">Pending</a></li>
+                                    <li><a class="dropdown-item" href="?status=completed">Completed</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="?priority=high">High Priority</a></li>
+                                    <li><a class="dropdown-item" href="?priority=medium">Medium Priority</a></li>
+                                    <li><a class="dropdown-item" href="?priority=low">Low Priority</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="col-12">
-        {% if tasks %}
-            <div class="row">
-                {% for task in tasks %}
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card h-100 shadow-sm hover-card {% if task.is_completed %}border-success{% endif %}">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="card-title mb-0">{{ task.title }}</h5>
-                                {% if task.is_completed %}
-                                    <span class="badge bg-success">Completed</span>
-                                {% else %}
-                                    <span class="badge bg-warning">Pending</span>
-                                {% endif %}
-                            </div>
-                            <div class="card-body">
-                                <p class="card-text">{{ task.description|truncatewords:20 }}</p>
-                                {% if task.due_date %}
-                                    <p class="card-text"><small class="text-muted">Due: {{ task.due_date }}</small></p>
-                                {% endif %}
-                            </div>
-                            <div class="card-footer bg-transparent">
-                                <div class="d-flex justify-content-between">
-                                    <a href="{% url 'task_detail' task.id %}" class="btn btn-sm btn-outline-primary">View</a>
-                                    <div>
-                                        <a href="{% url 'task_update' task.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
-                                        <a href="{% url 'task_delete' task.id %}" class="btn btn-sm btn-outline-danger">Delete</a>
+    <!-- Task Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card dashboard-stat">
+                <div class="card-body text-center">
+                    <i class="bi bi-list-task text-primary display-6"></i>
+                    <h4 class="mt-2">{{ total_tasks }}</h4>
+                    <p class="text-muted mb-0">Total Tasks</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card dashboard-stat">
+                <div class="card-body text-center">
+                    <i class="bi bi-clock-history text-warning display-6"></i>
+                    <h4 class="mt-2">{{ pending_tasks }}</h4>
+                    <p class="text-muted mb-0">Pending</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card dashboard-stat">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle text-success display-6"></i>
+                    <h4 class="mt-2">{{ completed_tasks }}</h4>
+                    <p class="text-muted mb-0">Completed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card dashboard-stat">
+                <div class="card-body text-center">
+                    <i class="bi bi-exclamation-triangle text-danger display-6"></i>
+                    <h4 class="mt-2">{{ overdue_tasks }}</h4>
+                    <p class="text-muted mb-0">Overdue</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tasks Grid -->
+    <div class="row">
+        <div class="col-12">
+            {% if tasks %}
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                    {% for task in tasks %}
+                        <div class="col">
+                            <div class="card h-100 shadow-sm hover-card task-card {% if task.is_completed %}completed-task{% endif %} {% if task.priority == 'high' %}border-danger{% elif task.priority == 'medium' %}border-warning{% else %}border-success{% endif %}">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="card-title mb-0">{{ task.title|truncatechars:30 }}</h5>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary" type="button" id="taskMenu{{ task.id }}" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a class="dropdown-item" href="{% url 'task_detail' task.id %}">
+                                                <i class="bi bi-eye me-2"></i> View
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="{% url 'task_update' task.id %}">
+                                                <i class="bi bi-pencil me-2"></i> Edit
+                                            </a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" href="{% url 'task_delete' task.id %}">
+                                                <i class="bi bi-trash me-2"></i> Delete
+                                            </a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text">{{ task.description|truncatewords:20 }}</p>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar me-1"></i> {{ task.due_date|date:"M d, Y"|default:"No due date" }}
+                                        </small>
+                                        {% if task.priority %}
+                                            <span class="badge bg-{{ task.priority|lower }}-light text-{{ task.priority|lower }}">{{ task.priority|title }}</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if task.is_completed %}
+                                        <div class="progress mb-2" style="height: 5px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <small class="text-success">Completed on {{ task.completed_at|date:"M d, Y"|default:"" }}</small>
+                                    {% else %}
+                                        <div class="progress mb-2" style="height: 5px;">
+                                            <div class="progress-bar bg-warning" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <small class="text-muted">Not started</small>
+                                    {% endif %}
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <div class="d-flex justify-content-between">
+                                        <a href="{% url 'task_detail' task.id %}" class="btn btn-sm btn-primary">View</a>
+                                        <div>
+                                            <button class="btn btn-sm btn-outline-success" onclick="toggleTaskStatus({{ task.id }})">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                            <a href="{% url 'task_update' task.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="text-center py-5">
-                <i class="bi bi-clipboard-check display-1 text-muted"></i>
-                <h3 class="mt-3">No tasks found</h3>
-                <p class="text-muted">Create your first task to get started!</p>
-                <a href="{% url 'task_create' %}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle me-1"></i> Create Task
-                </a>
-            </div>
-        {% endif %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-clipboard-check display-1 text-muted"></i>
+                    <h3 class="mt-3">No tasks found</h3>
+                    <p class="text-muted">
+                        {% if search_query %}
+                            No tasks match your search. Try a different search term.
+                        {% else %}
+                            Create your first task to get started!
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'task_create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i> Create Task
+                    </a>
+                </div>
+            {% endif %}
+        </div>
     </div>
 </div>
+
+<script>
+    function toggleTaskStatus(taskId) {
+        // This would typically involve an AJAX request to update the task status
+        // For now, we'll just show a placeholder message
+        showToast('Task status updated!', 'success');
+        
+        // In a real implementation, you would:
+        // 1. Send an AJAX request to update the task status
+        // 2. Update the UI based on the response
+        // 3. Show appropriate success/error messages
+    }
+    
+    function showToast(message, type) {
+        // Create a toast notification
+        const toastContainer = document.querySelector('.toast-container') || createToastContainer();
+        
+        const toastId = 'toast-' + Date.now();
+        const toastHtml = `
+            <div id="${toastId}" class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        
+        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+        
+        const toastElement = document.getElementById(toastId);
+        const toast = new bootstrap.Toast(toastElement, {
+            autohide: true,
+            delay: 3000
+        });
+        
+        toast.show();
+        
+        // Remove toast element after it's hidden
+        toastElement.addEventListener('hidden.bs.toast', function() {
+            toastElement.remove();
+        });
+    }
+    
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        document.body.appendChild(container);
+        return container;
+    }
+</script>
+
+<style>
+    .task-card {
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+    }
+    
+    .task-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .completed-task {
+        opacity: 0.8;
+    }
+    
+    .completed-task .card-title {
+        text-decoration: line-through;
+    }
+    
+    .dashboard-stat {
+        transition: all 0.3s ease;
+    }
+    
+    .dashboard-stat:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+</style>
 {% endblock %}

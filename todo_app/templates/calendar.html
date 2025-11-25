@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Calendar - TaskFlow{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">{{ month_name }} {{ year }}</h1>
+
+    <!-- Calendar Grid -->
+    <table class="table table-bordered text-center">
+        <thead>
+            <tr>
+                <th>Sun</th>
+                <th>Mon</th>
+                <th>Tue</th>
+                <th>Wed</th>
+                <th>Thu</th>
+                <th>Fri</th>
+                <th>Sat</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for week in month_days %}
+            <tr>
+                {% for day in week %}
+                <td>
+                    {% if day != 0 %}
+                        <strong>{{ day }}</strong>
+                        <ul class="list-unstyled mt-2">
+                            {% for event in events %}
+                                {% if event.date.day == day and event.date.month == today.month %}
+                                    <li>
+                                        {% if event.type == 'task' %}
+                                            <a href="{{ event.url }}" class="text-decoration-none">
+                                                <span class="badge bg-primary">{{ event.title }}</span>
+                                            </a>
+                                        {% elif event.type == 'note' %}
+                                            <a href="{{ event.url }}" class="text-decoration-none">
+                                                <span class="badge bg-info text-dark">{{ event.title }}</span>
+                                            </a>
+                                        {% endif %}
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
